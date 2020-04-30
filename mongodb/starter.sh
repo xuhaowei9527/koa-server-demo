@@ -1,0 +1,1 @@
+docker run --name mongoevent -p 27017:27017 -v ~/xuhaowei/NMTims/Server/mongodb/data:/data/db -e MONGO_INITDB_ROOT_USERNAME=xuhaowei -e MONGO_INITDB_ROOT_PASSWORD=passw0rd -d mongo
