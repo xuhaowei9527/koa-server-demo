@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const moment = require("moment");
 const cleardir = require("../utils/fs");
+const cb = require("../index");
 // JSON转换
 const parseJson = function(str) {
   return JSON.parse(str);
@@ -114,10 +115,10 @@ class EventsCtl {
       .select(selectFields).populate('eventinfo')
       .limit(perPage)
       .skip(perPage * page);
-    const count = await Event.count();
+    const total = await Event.countDocuments();
     ctx.body = {
+      total: total,
       data: event,
-      total: count,
       status: 200
     };
   }
@@ -149,15 +150,22 @@ class EventsCtl {
     // 事件类型检索
     const typestring = Eventarraystring[parseInt(ctx.query.eventtype) - 1];
     // 是否结束
-    const isfinish = ctx.query.isfinish;
+    let isfinish = null;
+    if (ctx.query.isfinish === 'true') {
+      isfinish = true;
+    } else if (ctx.query.isfinish === 'false'){
+      isfinish = false;
+    } else {
+      isfinish = '';
+    };
     // 管理部门
     const unit = ctx.query.unit;
     // 所在线路
     const road = ctx.query.road;
     // 开始时间
-    const start = moment(ctx.query.start).valueOf();
+    const start = ctx.query.start !== undefined && ctx.query.start !== ''? moment(new Date(ctx.query.start)).valueOf(): '';
     // 结束时间
-    const end = moment(ctx.query.end).valueOf();
+    const end = ctx.query.end !== undefined && ctx.query.end !== ''? moment(new Date(ctx.query.end)).valueOf(): '';
     const conditions = {
       $and: [
         // {$where: ()=> {print(this.occtime); return this.eventinfo !== null}}
@@ -165,19 +173,20 @@ class EventsCtl {
     };
 
     // 事件类型
-    type !== undefined ? conditions.$and.push({ eventtype: { $regex: type } }) : "";
+    type !== '' ? conditions.$and.push({ eventtype: { $regex: type } }) : "";
     // 是否结束
-    isfinish !== undefined ? conditions.$and.push({ tag: { $eq: isfinish } }) : "";
+    isfinish !== '' ? conditions.$and.push({ tag: isfinish }) : "";
     // 管理部门
-    unit !== undefined ? conditions.$and.push({ unit: { $regex: unit } }) : "";
+    unit !== '' && unit !== undefined ? conditions.$and.push({ unit: { $regex: unit } }) : "";
     // 路段名称
-    road !== undefined ? conditions.$and.push({
+    road !== '' && road !== undefined ? conditions.$and.push({
       info: {
         $elemMatch: { road: { $regex: road } }
       }
     }): '';
     // 时间段
-    start !== undefined && end !== undefined ? conditions.$and.push({ occtime: { $gte: start, $lte: end } }) : "";
+    ctx.query.start !== '' && ctx.query.start !== undefined && ctx.query.end !== undefined && ctx.query.end !=='' ? conditions.$and.push({ occtime: { $gte: start, $lte: end } }) : "";
+    
     // 根据查询事件中的详细信息匹配数据
     // const event = await Event.find(conditions)
     //   .select(selectFields)
@@ -200,12 +209,6 @@ class EventsCtl {
       }
     };
     const aggconfig = [
-      {
-        $match: {
-          ...conditions,
-          // occtime: { $gte: start, $lte: end }
-        }
-      },
       // skip和limit顺序不能颠倒
       {
         $skip: perPage * page
@@ -214,17 +217,42 @@ class EventsCtl {
         $limit: perPage
       },
     ]
+    // 计数用
+    const countconfig = [
+      {
+        $group: {
+          _id: null, //按照$day进行分组（一组为1天） 
+          total: { $sum: 1 },
+        }
+      }
+    ]
+    if(conditions.$and.length > 0) {
+      aggconfig.unshift({
+        $match: {
+          ...conditions,
+        }
+      });
+      countconfig.unshift({
+        $match: {
+          ...conditions,
+        }
+      })
+    }
     if(typestring) {
       aggconfig.unshift(lookupstr);
     }
     // 聚合查询
     const event = await Event.aggregate(aggconfig, function (err, docs) {
       if (err) {
-       //  console.log(err);
         return;
       }
     });
-    ctx.body = event;
+    const count = await Event.aggregate(countconfig);
+    ctx.body = {
+      total: count.length > 0 ? count[0].total: 0,
+      data: event,
+      status: 200
+    };
   }
 
   // 模糊搜索
@@ -286,7 +314,7 @@ class EventsCtl {
     
     ctx.body = { event, info: info };
   }
-
+    
   async create(ctx) {
     const { type = ''} = ctx.query;
     const Earr = Eventarray[parseInt(type) - 1];
@@ -350,8 +378,12 @@ class EventsCtl {
       filelist: filelistarr
     });
     fin.filelist = filelistarr;
-    ctx.body = fin;
-
+    ctx.body = {
+      data: fin,
+      status: 200
+    };
+    // 利用socket.io更新数据
+    process.socket.emit("InsertEvent", "sucess");
 
     // 本地存储文件第二种方式
     // const basename = path.basename(i.path);
@@ -453,6 +485,8 @@ class EventsCtl {
     // 删除关联表信息
     await Earr.findByIdAndRemove(event.eventinfo);
     ctx.body = event;
+    // 利用socket.io更新数据
+    process.socket.emit("RemoveItem", "sucess");
   }
 }
 

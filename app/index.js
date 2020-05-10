@@ -9,9 +9,14 @@ const error = require("koa-json-error");
 const parameter = require("koa-parameter");
 // 连接mongodb数据库
 const mongoose = require("mongoose");
+// 跨域处理
+const cors = require("koa2-cors");
 // nodejs路径处理
 const path = require("path");
 const app = new Koa();
+
+// 顺序在app之后
+const soc = require("./socket/index");
 const routing = require("./routes/index");
 const { connectStr } = require("./config");
 
@@ -24,6 +29,7 @@ mongoose.connect(
 
 mongoose.connection.on("error", console.error);
 
+app.use(cors());
 app.use(KoaStatic(path.join(__dirname, "public")));
 app.use(
   error({
@@ -43,7 +49,10 @@ app.use(
     }
   )
 );
+
 app.use(parameter(app));
 routing(app);
-
 app.listen(8080, () => console.log("程序运行在: 8080端口"));
+
+// socket.io用
+soc(app);
