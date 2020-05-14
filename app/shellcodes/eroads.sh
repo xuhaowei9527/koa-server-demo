@@ -6,7 +6,7 @@ for((i=0;i<19;i++));
 do
 curl --location --request POST 'http://localhost:8080/eventroads' \
 --header 'Content-Type: application/json' \
---data-raw '{
+--data '{
 	"uid": "'${roaduid[$i]}'",
 	"label": "'${roadlabel[$i]}'"
 }'

@@ -6,7 +6,7 @@ EOF
 # 交通事故
 #!/bin/bash
 trafficincidentarr=("车辆刮擦" "追尾" "翻车" "自燃" "撞护栏" "危化品事故" "隧道事故" "连环追尾" "客车事故" "其他")
-trafficincident="5eac2026384cfe06f10a4fda"
+trafficincident="5ebb7cb27c43e70b3630f5b2"
 # echo ${#wulanchabusecondaries[@]}
 # echo ${wulanchabusecondaries[*]}
 for((i=0;i<${#trafficincidentarr[@]};i++));
@@ -19,7 +19,7 @@ else
 fi
 	curl --location --request POST 'http://localhost:8080/eventnames' \
 	--header 'Content-Type: application/json' \
-	--data-raw '{
+	--data '{
     "typeid":"'$trafficincident'",
 		"uid": "'$value'",
 		"label": "'${trafficincidentarr[$i]}'"
@@ -28,7 +28,7 @@ done;
 # 车流量大
 #!/bin/bash
 heavytrafficarr=("收费站车流量大" "煤检站车流量大" "省内治超站车流量大" "车辆多导致车流量大" "施工导致车流量大" "邻省交通影响导致车流量大" "省内交通影响导致车流量大" "恶劣天气导致车流量大" "路面状况不良导致车流量大" "其他原因导致车流量大")
-heavytraffic="5eabfd85384cfe06f10a4f34"
+heavytraffic="5ebb7cb27c43e70b3630f5b3"
 # echo ${#wulanchabusecondaries[@]}
 # echo ${wulanchabusecondaries[*]}
 for((i=0;i<${#heavytrafficarr[@]};i++));
@@ -41,7 +41,7 @@ else
 fi
 	curl --location --request POST 'http://localhost:8080/eventnames' \
 	--header 'Content-Type: application/json' \
-	--data-raw '{
+	--data '{
     "typeid":"'$heavytraffic'",
 		"uid": "'$value'",
 		"label": "'${heavytrafficarr[$i]}'"
@@ -51,7 +51,7 @@ done;
 # 自然灾害
 #!/bin/bash
 naarr=("水毁" "泥石流" "塌方" "雷击" "其他")
-na="5eabfd85384cfe06f10a4f35"
+na="5ebb7cb27c43e70b3630f5b4"
 # echo ${#wulanchabusecondaries[@]}
 # echo ${wulanchabusecondaries[*]}
 for((i=0;i<${#naarr[@]};i++));
@@ -64,7 +64,7 @@ else
 fi
 	curl --location --request POST 'http://localhost:8080/eventnames' \
 	--header 'Content-Type: application/json' \
-	--data-raw '{
+	--data '{
     "typeid":"'$na'",
 		"uid": "'$value'",
 		"label": "'${naarr[$i]}'"
@@ -74,7 +74,7 @@ done;
 # 站点事件
 #!/bin/bash
 sitearr=("治超磅坏" "设备维修" "停电" "其他")
-site="5eabfd85384cfe06f10a4f36"
+site="5ebb7cb27c43e70b3630f5b5"
 # echo ${#wulanchabusecondaries[@]}
 # echo ${wulanchabusecondaries[*]}
 for((i=0;i<${#sitearr[@]};i++));
@@ -87,7 +87,7 @@ else
 fi
 	curl --location --request POST 'http://localhost:8080/eventnames' \
 	--header 'Content-Type: application/json' \
-	--data-raw '{
+	--data '{
     "typeid":"'$site'",
 		"uid": "'$value'",
 		"label": "'${sitearr[$i]}'"
@@ -97,7 +97,7 @@ done;
 # 交通管制
 #!/bin/bash
 trafficcontrolarr=("主线封闭" "执行勤务" "道路施工" "恶劣天气" "邻省交通影响" "省内交通影响" "其他")
-trafficcontrol="5eabfd85384cfe06f10a4f37"
+trafficcontrol="5ebb7cb27c43e70b3630f5b6"
 # echo ${#wulanchabusecondaries[@]}
 # echo ${wulanchabusecondaries[*]}
 for((i=0;i<${#trafficcontrolarr[@]};i++));
@@ -110,7 +110,7 @@ else
 fi
 	curl --location --request POST 'http://localhost:8080/eventnames' \
 	--header 'Content-Type: application/json' \
-	--data-raw '{
+	--data '{
     "typeid":"'$trafficcontrol'",
 		"uid": "'$value'",
 		"label": "'${trafficcontrolarr[$i]}'"
@@ -120,7 +120,7 @@ done;
 # 其他事件
 #!/bin/bash
 otherarr=("道路障碍" "社会公众事件" "车辆救助" "其他")
-other="5eabfd85384cfe06f10a4f38"
+other="5ebb7cb27c43e70b3630f5b7"
 # echo ${#wulanchabusecondaries[@]}
 # echo ${wulanchabusecondaries[*]}
 for((i=0;i<${#otherarr[@]};i++));
@@ -133,7 +133,7 @@ else
 fi
 	curl --location --request POST 'http://localhost:8080/eventnames' \
 	--header 'Content-Type: application/json' \
-	--data-raw '{
+	--data '{
     "typeid":"'$other'",
 		"uid": "'$value'",
 		"label": "'${otherarr[$i]}'"

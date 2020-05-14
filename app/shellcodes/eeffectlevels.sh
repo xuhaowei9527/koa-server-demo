@@ -5,7 +5,7 @@ for((i=0;i<${#effectlevel[@]};i++));
 do
 curl --location --request POST 'http://localhost:8080/effectlevels' \
 --header 'Content-Type: application/json' \
---data-raw '{
+--data '{
 	"uid": "00'$i'",
 	"label": "'${effectlevel[$i]}'"
 }'

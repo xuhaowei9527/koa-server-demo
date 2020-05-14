@@ -6,7 +6,7 @@ do
   echo "这是第 $i 次调用";
 	curl --location --request POST 'http://localhost:8080/unitprimarys' \
 	--header 'Content-Type: application/json' \
-	--data-raw '{
+	--data '{
 		"uid": "00'$i'",
 		"label": "'${primaries[$i]}'"
 	}'

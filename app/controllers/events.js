@@ -199,60 +199,122 @@ class EventsCtl {
     //   .limit(perPage)
     //   .skip(perPage * page);
     //   ctx.body = event;
-    const lookupstr = {
-      $lookup:
-      {
-        from: typestring,
-        localField: "eventinfo",
-        foreignField: "_id",
-        as: "info"
-      }
-    };
-    const aggconfig = [
-      // skip和limit顺序不能颠倒
-      {
-        $skip: perPage * page
-      },
-      {
-        $limit: perPage
-      },
-    ]
-    // 计数用
-    const countconfig = [
-      {
-        $group: {
-          _id: null, //按照$day进行分组（一组为1天） 
-          total: { $sum: 1 },
+    if (!(!typestring && road !== '' && road !== undefined)) {
+      const lookupstr = {
+        $lookup:
+        {
+          from: typestring,
+          localField: "eventinfo",
+          foreignField: "_id",
+          as: "info"
         }
+      };
+      const aggconfig = [
+        // skip和limit顺序不能颠倒
+        {
+          $skip: perPage * page
+        },
+        {
+          $limit: perPage
+        },
+      ]
+      // 计数用
+      const countconfig = [
+        {
+          $group: {
+            _id: null, //按照$day进行分组（一组为1天） 
+            total: { $sum: 1 },
+          }
+        }
+      ]
+      if (conditions.$and.length > 0) {
+        aggconfig.unshift({
+          $match: {
+            ...conditions,
+          }
+        });
+        countconfig.unshift({
+          $match: {
+            ...conditions,
+          }
+        })
       }
-    ]
-    if(conditions.$and.length > 0) {
-      aggconfig.unshift({
-        $match: {
-          ...conditions,
+      if(typestring) {
+        aggconfig.unshift(lookupstr);
+      }
+      // 聚合查询
+      const event = await Event.aggregate(aggconfig, function (err, docs) {
+        if (err) {
+          return;
         }
       });
-      countconfig.unshift({
-        $match: {
-          ...conditions,
+      ctx.body = {
+        total: event.length > 0 ? event.length : 0,
+        data: event,
+        status: 200
+      };
+    } else {
+      let list = [];
+      let counttotal = 0;
+      for (let j = 0; j < Eventarraystring.length; j++) {
+        const i = Eventarraystring[j];
+        const lookupstr = {
+          $lookup:
+          {
+            from: i,
+            localField: "eventinfo",
+            foreignField: "_id",
+            as: "info"
+          }
+        };
+        const aggconfig = [
+          // skip和limit顺序不能颠倒
+          {
+            $skip: perPage * page
+          },
+          {
+            $limit: perPage
+          },
+        ]
+        // 计数用
+        const countconfig = [
+          {
+            $group: {
+              _id: null, //按照$day进行分组（一组为1天） 
+              total: { $sum: 1 },
+            }
+          }
+        ]
+        if (conditions.$and.length > 0) {
+          aggconfig.unshift({
+            $match: {
+              ...conditions,
+            }
+          });
+          countconfig.unshift({
+            $match: {
+              ...conditions,
+            }
+          })
         }
-      })
+        aggconfig.unshift(lookupstr);
+        const event = await Event.aggregate(aggconfig, function (err, docs) {
+          if (err) {
+            return;
+          }
+        });
+        if(event.length > 0){
+          list = list.concat(event);
+        }
+        counttotal += event.length;
+      };
+      ctx.body = {
+        total: counttotal > 0 ? counttotal : 0,
+        data: list,
+        status: 200
+      };
     }
-    if(typestring) {
-      aggconfig.unshift(lookupstr);
-    }
-    // 聚合查询
-    const event = await Event.aggregate(aggconfig, function (err, docs) {
-      if (err) {
-        return;
-      }
-    });
-    const count = await Event.aggregate(countconfig);
-    ctx.body = {
-      total: count.length > 0 ? count[0].total: 0,
-      data: event,
-      status: 200
-    };
+    
   }
 
   // 模糊搜索

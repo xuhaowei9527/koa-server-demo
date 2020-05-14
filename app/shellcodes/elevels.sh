@@ -5,7 +5,7 @@ for((i=0;i<5;i++));
 do
 curl --location --request POST 'http://localhost:8080/eventlevels' \
 --header 'Content-Type: application/json' \
---data-raw '{
+--data '{
 	"uid": "00'$i'",
 	"label": "'${eventlevels[$i]}'"
 }'
